@@ -11,7 +11,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { AuthService } from '../../../services/auth.service';
 import { BookService } from '../../../services/book.service';
 import { ReservationService } from '../../../services/reservation.service';
-import { BookResponse } from '../../../models/book.model';
+import { BookResponse, BookCopyResponse } from '../../../models/book.model';
 
 @Component({
   selector: 'app-book-detail',
@@ -103,6 +103,30 @@ export class BookDetail implements OnInit {
           this.reserving = false;
         },
       });
+  }
+
+  getCopyStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+      Available: 'Dostępna',
+      Borrowed: 'Wypożyczona',
+      Reserved: 'Zarezerwowana',
+      Withdrawn: 'Wycofana',
+    };
+    return map[status] || status;
+  }
+
+  getCopyStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' {
+    const map: Record<string, 'success' | 'info' | 'warn' | 'danger'> = {
+      Available: 'success',
+      Borrowed: 'warn',
+      Reserved: 'info',
+      Withdrawn: 'danger',
+    };
+    return map[status] || 'info';
+  }
+
+  get availableCopiesCount(): number {
+    return this.book?.copies.filter((c) => c.status === 'Available').length ?? 0;
   }
 
   confirmDelete(): void {

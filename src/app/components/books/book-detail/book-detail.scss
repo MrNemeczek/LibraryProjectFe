@@ -88,6 +88,51 @@
   }
 }
 
+.copies-section {
+  border-top: 1px solid var(--p-content-border-color);
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+
+  h3 {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+}
+
+.copies-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.copy-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--p-surface-100);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-border-radius-md);
+}
+
+.copy-number {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.reserve-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.copies-hint {
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+  white-space: nowrap;
+}
+
 @media (max-width: 600px) {
   .book-detail-header {
     flex-direction: column;

@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { Button } from 'primeng/button';
@@ -7,7 +7,9 @@ import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
 import { Card } from 'primeng/card';
 import { Message } from 'primeng/message';
+import { Tag } from 'primeng/tag';
 import { BookService } from '../../../services/book.service';
+import { BookCopyResponse } from '../../../models/book.model';
 
 @Component({
   selector: 'app-book-form',
@@ -20,6 +22,7 @@ import { BookService } from '../../../services/book.service';
     Textarea,
     Card,
     Message,
+    Tag,
   ],
   templateUrl: './book-form.html',
   styleUrl: './book-form.scss',
@@ -36,6 +39,13 @@ export class BookForm implements OnInit {
   loading = false;
   submitting = false;
   error = '';
+
+  existingCopies: BookCopyResponse[] = [];
+  inventoryNumbers: string[] = [];
+  newInventoryControl = this.fb.nonNullable.control('', [
+    Validators.required,
+    Validators.maxLength(50),
+  ]);
 
   form = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.maxLength(200)]],
@@ -78,11 +88,43 @@ export class BookForm implements OnInit {
           description: book.description,
           categoryName: book.categoryName,
         });
+        this.existingCopies = book.copies;
       },
       error: () => {
         this.error = 'Nie znaleziono książki.';
       },
     });
+  }
+
+  addInventoryNumber(): void {
+    const value = this.newInventoryControl.value.trim();
+    if (!value || this.newInventoryControl.invalid) return;
+    this.inventoryNumbers.push(value);
+    this.newInventoryControl.reset();
+  }
+
+  removeInventoryNumber(index: number): void {
+    this.inventoryNumbers.splice(index, 1);
+  }
+
+  getCopyStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+      Available: 'Dostępna',
+      Borrowed: 'Wypożyczona',
+      Reserved: 'Zarezerwowana',
+      Withdrawn: 'Wycofana',
+    };
+    return map[status] || status;
+  }
+
+  getCopyStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' {
+    const map: Record<string, 'success' | 'info' | 'warn' | 'danger'> = {
+      Available: 'success',
+      Borrowed: 'warn',
+      Reserved: 'info',
+      Withdrawn: 'danger',
+    };
+    return map[status] || 'info';
   }
 
   onSubmit(): void {
@@ -91,7 +133,10 @@ export class BookForm implements OnInit {
     this.submitting = true;
     this.error = '';
 
-    const request = this.form.getRawValue();
+    const request = {
+      ...this.form.getRawValue(),
+      inventoryNumbers: this.inventoryNumbers.length > 0 ? this.inventoryNumbers : null,
+    };
 
     const action = this.isEdit
       ? this.bookService.updateBook(this.bookId, request)
