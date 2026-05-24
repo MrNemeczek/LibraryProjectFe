@@ -1,5 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -36,6 +37,7 @@ export class BookDetail implements OnInit {
   protected authService = inject(AuthService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
+  private cdr = inject(ChangeDetectorRef);
 
   book: BookResponse | null = null;
   loading = true;
@@ -63,14 +65,17 @@ export class BookDetail implements OnInit {
 
   private loadBook(id: number): void {
     this.loading = true;
-    this.bookService.getBook(id).subscribe({
+    this.bookService.getBook(id).pipe(
+      finalize(() => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
       next: (book) => {
         this.book = book;
-        this.loading = false;
       },
       error: () => {
         this.error = 'Nie znaleziono książki.';
-        this.loading = false;
       },
     });
   }

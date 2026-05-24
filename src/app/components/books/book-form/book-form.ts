@@ -1,6 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
@@ -28,6 +29,7 @@ export class BookForm implements OnInit {
   private bookService = inject(BookService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
 
   isEdit = false;
   bookId = 0;
@@ -62,7 +64,12 @@ export class BookForm implements OnInit {
 
   private loadBook(): void {
     this.loading = true;
-    this.bookService.getBook(this.bookId).subscribe({
+    this.bookService.getBook(this.bookId).pipe(
+      finalize(() => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
       next: (book) => {
         this.form.patchValue({
           title: book.title,
@@ -71,11 +78,9 @@ export class BookForm implements OnInit {
           description: book.description,
           categoryName: book.categoryName,
         });
-        this.loading = false;
       },
       error: () => {
         this.error = 'Nie znaleziono książki.';
-        this.loading = false;
       },
     });
   }
