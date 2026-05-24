@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -17,6 +17,7 @@ import { BookResponse } from '../../../models/book.model';
   standalone: true,
   imports: [
     FormsModule,
+    RouterLink,
     Button,
     InputText,
     TableModule,

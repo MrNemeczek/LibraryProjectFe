@@ -24,6 +24,7 @@ export const routes: Routes = [
       import('./components/books/book-list/book-list').then(
         (m) => m.BookList
       ),
+    canActivate: [authGuard],
   },
   {
     path: 'books/new',
@@ -39,6 +40,7 @@ export const routes: Routes = [
       import('./components/books/book-detail/book-detail').then(
         (m) => m.BookDetail
       ),
+    canActivate: [authGuard],
   },
   {
     path: 'books/:id/edit',
