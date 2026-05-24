@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, ChangeDetectorRef, afterNextRender } from '@angular/core';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { LoanService } from '../../../services/loan.service';
@@ -7,12 +7,14 @@ import { LoanResponse } from '../../../models/loan.model';
 @Component({
   selector: 'app-all-loans',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TableModule, Tag],
   templateUrl: './all-loans.html',
   styleUrl: './all-loans.scss',
 })
-export class AllLoans implements OnInit {
+export class AllLoans {
   private loanService = inject(LoanService);
+  private cdr = inject(ChangeDetectorRef);
 
   loans: LoanResponse[] = [];
   totalCount = 0;
@@ -20,8 +22,10 @@ export class AllLoans implements OnInit {
   pageSize = 20;
   loading = false;
 
-  ngOnInit(): void {
-    this.loadLoans();
+  constructor() {
+    afterNextRender(() => {
+      this.loadLoans();
+    });
   }
 
   loadLoans(): void {
@@ -31,9 +35,11 @@ export class AllLoans implements OnInit {
         this.loans = response.items;
         this.totalCount = response.totalCount;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loading = false;
+        this.cdr.markForCheck();
       },
     });
   }

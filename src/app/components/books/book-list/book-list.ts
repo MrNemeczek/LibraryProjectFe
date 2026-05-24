@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, ChangeDetectorRef, afterNextRender } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
@@ -15,6 +15,7 @@ import { BookResponse } from '../../../models/book.model';
 @Component({
   selector: 'app-book-list',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     RouterLink,
@@ -29,10 +30,11 @@ import { BookResponse } from '../../../models/book.model';
   templateUrl: './book-list.html',
   styleUrl: './book-list.scss',
 })
-export class BookList implements OnInit {
+export class BookList {
   private bookService = inject(BookService);
   protected authService = inject(AuthService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   books: BookResponse[] = [];
   filteredBooks: BookResponse[] = [];
@@ -46,8 +48,10 @@ export class BookList implements OnInit {
     return this.authService.hasAnyRole(['Librarian', 'Administrator']);
   }
 
-  ngOnInit(): void {
-    this.loadBooks();
+  constructor() {
+    afterNextRender(() => {
+      this.loadBooks();
+    });
   }
 
   loadBooks(): void {
@@ -58,9 +62,11 @@ export class BookList implements OnInit {
         this.totalCount = response.totalCount;
         this.applyFilter();
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loading = false;
+        this.cdr.markForCheck();
       },
     });
   }

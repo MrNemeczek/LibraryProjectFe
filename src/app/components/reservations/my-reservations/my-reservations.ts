@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, ChangeDetectorRef, afterNextRender } from '@angular/core';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
@@ -11,15 +11,17 @@ import { ReservationResponse } from '../../../models/reservation.model';
 @Component({
   selector: 'app-my-reservations',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Button, TableModule, Tag, ToastModule, ConfirmDialog],
   providers: [MessageService, ConfirmationService],
   templateUrl: './my-reservations.html',
   styleUrl: './my-reservations.scss',
 })
-export class MyReservations implements OnInit {
+export class MyReservations {
   private reservationService = inject(ReservationService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
+  private cdr = inject(ChangeDetectorRef);
 
   reservations: ReservationResponse[] = [];
   totalCount = 0;
@@ -27,8 +29,10 @@ export class MyReservations implements OnInit {
   pageSize = 20;
   loading = false;
 
-  ngOnInit(): void {
-    this.loadReservations();
+  constructor() {
+    afterNextRender(() => {
+      this.loadReservations();
+    });
   }
 
   loadReservations(): void {
@@ -38,9 +42,11 @@ export class MyReservations implements OnInit {
         this.reservations = response.items;
         this.totalCount = response.totalCount;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loading = false;
+        this.cdr.markForCheck();
       },
     });
   }
