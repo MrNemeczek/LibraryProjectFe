@@ -1,0 +1,74 @@
+<p-toast />
+<p-confirmdialog />
+
+<div class="book-detail-page">
+  <a routerLink="/books" class="back-link">
+    <i class="pi pi-arrow-left"></i>
+    Powrót do listy
+  </a>
+
+  @if (loading) {
+    <p-card>
+      <div class="loading-text">Ładowanie...</div>
+    </p-card>
+  } @else if (error) {
+    <p-message severity="warn" [text]="error" styleClass="w-full" />
+  } @else if (book) {
+    <p-card>
+      <div class="book-detail-content">
+        <div class="book-detail-header">
+          <h1>{{ book.title }}</h1>
+          <div class="book-actions">
+            @if (isLoggedIn) {
+              <p-button
+                icon="pi pi-calendar-plus"
+                [loading]="reserving"
+                (click)="reserve()"
+                label="Rezerwuj"
+              />
+            }
+            @if (isLibrarianOrAdmin) {
+              <p-button
+                severity="secondary"
+                icon="pi pi-pencil"
+                [routerLink]="['/books', book.id, 'edit']"
+                label="Edytuj"
+              />
+              <p-button
+                severity="danger"
+                icon="pi pi-trash"
+                [loading]="deleting"
+                (click)="confirmDelete()"
+                label="Usuń"
+              />
+            }
+          </div>
+        </div>
+
+        <div class="book-info-grid">
+          <div class="info-item">
+            <span class="info-label">Autor</span>
+            <span class="info-value">{{ book.author }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">ISBN</span>
+            <span class="info-value"><code>{{ book.isbn }}</code></span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Kategoria</span>
+            <span class="info-value">
+              <p-tag [value]="book.categoryName" severity="info" />
+            </span>
+          </div>
+        </div>
+
+        @if (book.description) {
+          <div class="description-section">
+            <h3>Opis</h3>
+            <p>{{ book.description }}</p>
+          </div>
+        }
+      </div>
+    </p-card>
+  }
+</div>

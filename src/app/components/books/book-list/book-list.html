@@ -1,0 +1,72 @@
+<div class="book-list-page">
+  <div class="book-list-header">
+    <h1>Książki</h1>
+    @if (isLibrarianOrAdmin) {
+      <p-button routerLink="/books/new" icon="pi pi-plus" label="Dodaj książkę" />
+    }
+  </div>
+
+  <p-card>
+    <div class="toolbar">
+      <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+          pInputText
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="onSearchInput()"
+          placeholder="Szukaj po tytule..."
+          class="search-input"
+        />
+      </p-iconfield>
+    </div>
+
+    <p-table
+      [value]="filteredBooks"
+      [paginator]="true"
+      [rows]="pageSize"
+      [totalRecords]="totalCount"
+      [lazy]="true"
+      (onPage)="onPageChange($event)"
+      [loading]="loading"
+      [rowsPerPageOptions]="[10, 20, 50]"
+      dataKey="id"
+      [rowHover]="true"
+      styleClass="p-datatable-striped"
+    >
+      <ng-template #header>
+        <tr>
+          <th>Tytuł</th>
+          <th>Autor</th>
+          <th>ISBN</th>
+          <th>Kategoria</th>
+          @if (isLibrarianOrAdmin) {
+            <th style="width: 80px">Akcje</th>
+          }
+        </tr>
+      </ng-template>
+      <ng-template #body let-book>
+        <tr class="cursor-pointer" (click)="viewBook(book.id)">
+          <td>{{ book.title }}</td>
+          <td>{{ book.author }}</td>
+          <td><code>{{ book.isbn }}</code></td>
+          <td>
+            <p-tag [value]="book.categoryName" severity="info" />
+          </td>
+          @if (isLibrarianOrAdmin) {
+            <td>
+              <p-button icon="pi pi-pencil" severity="secondary" size="small" (click)="editBook($event, book.id)" />
+            </td>
+          }
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td [attr.colspan]="isLibrarianOrAdmin ? 5 : 4" class="text-center">
+            Brak książek.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

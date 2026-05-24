@@ -1,0 +1,59 @@
+<p-toast />
+
+<div class="reservations-page">
+  <h1>Wszystkie rezerwacje</h1>
+
+  <p-table
+    [value]="reservations"
+    [paginator]="true"
+    [rows]="pageSize"
+    [totalRecords]="totalCount"
+    [lazy]="true"
+    (onPage)="onPageChange($event)"
+    [loading]="loading"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    dataKey="id"
+    styleClass="p-datatable-striped"
+  >
+    <ng-template #header>
+      <tr>
+        <th>Użytkownik</th>
+        <th>Książka</th>
+        <th>Data rezerwacji</th>
+        <th>Termin odbioru</th>
+        <th>Status</th>
+        <th style="width: 100px">Akcje</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-reservation>
+      <tr>
+        <td>#{{ reservation.userId }}</td>
+        <td>{{ reservation.bookTitle }}</td>
+        <td>{{ reservation.reservationDate }}</td>
+        <td>{{ reservation.pickupDeadline || '-' }}</td>
+        <td>
+          <p-tag
+            [value]="getStatusLabel(reservation.status)"
+            [severity]="getStatusSeverity(reservation.status)"
+          />
+        </td>
+        <td>
+          @if (reservation.status === 'Active') {
+            <p-button
+              icon="pi pi-check"
+              severity="success"
+              size="small"
+              (click)="fulfillReservation(reservation.id)"
+              pTooltip="Zrealizuj rezerwację"
+            />
+          }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="6" class="text-center">Brak rezerwacji.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
