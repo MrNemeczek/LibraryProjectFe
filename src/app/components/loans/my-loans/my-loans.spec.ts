@@ -9,14 +9,16 @@ describe('MyLoans', () => {
   let fixture: ComponentFixture<MyLoans>;
   let loanService: {
     getMyLoans: ReturnType<typeof vi.fn>;
-    returnBook: ReturnType<typeof vi.fn>;
   };
 
   const mockLoans: LoanResponse[] = [
     {
       id: 1,
       userId: 1,
+      readerFirstName: 'Jan',
+      readerLastName: 'Kowalski',
       bookCopyId: 101,
+      bookCopyInventoryNumber: 'INV-101',
       reservationId: null,
       loanDate: '2026-01-15',
       returnDate: null,
@@ -25,7 +27,10 @@ describe('MyLoans', () => {
     {
       id: 2,
       userId: 1,
+      readerFirstName: 'Jan',
+      readerLastName: 'Kowalski',
       bookCopyId: 102,
+      bookCopyInventoryNumber: 'INV-102',
       reservationId: null,
       loanDate: '2025-12-01',
       returnDate: '2025-12-20',
@@ -34,7 +39,7 @@ describe('MyLoans', () => {
   ];
 
   beforeEach(async () => {
-    loanService = { getMyLoans: vi.fn(), returnBook: vi.fn() };
+    loanService = { getMyLoans: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [MyLoans],

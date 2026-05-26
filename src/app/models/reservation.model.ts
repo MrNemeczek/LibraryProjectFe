@@ -1,6 +1,7 @@
 export interface ReservationResponse {
   id: number;
-  userId: number;
+  readerFirstName: string;
+  readerLastName: string;
   bookId: number;
   bookTitle: string;
   reservationDate: string;
@@ -11,4 +12,9 @@ export interface ReservationResponse {
 export interface CreateReservationRequest {
   bookId: number;
   pickupDeadlineDays?: number | null;
+}
+
+export interface ReservationFilters {
+  reservationId?: number | null;
+  readerName?: string | null;
 }

@@ -15,7 +15,8 @@ describe('AllReservations', () => {
   const mockReservations: ReservationResponse[] = [
     {
       id: 1,
-      userId: 2,
+      readerFirstName: 'Jan',
+      readerLastName: 'Kowalski',
       bookId: 1,
       bookTitle: 'W pustyni i w puszczy',
       reservationDate: '2026-01-15',
@@ -24,7 +25,8 @@ describe('AllReservations', () => {
     },
     {
       id: 2,
-      userId: 3,
+      readerFirstName: 'Anna',
+      readerLastName: 'Nowak',
       bookId: 2,
       bookTitle: 'Lalka',
       reservationDate: '2025-12-01',
@@ -61,7 +63,8 @@ describe('AllReservations', () => {
 
       expect(reservationService.getAllReservations).toHaveBeenCalledWith(
         1,
-        20
+        20,
+        { reservationId: null, readerName: '' }
       );
       expect(component.reservations.length).toBe(2);
       expect(component.totalCount).toBe(2);
@@ -76,6 +79,34 @@ describe('AllReservations', () => {
       component.loadReservations();
 
       expect(component.loading).toBe(false);
+    });
+  });
+
+  describe('filters', () => {
+    it('should reset to first page and reload when filters change', () => {
+      const loadSpy = vi.spyOn(component, 'loadReservations').mockImplementation(() => {});
+      component.page = 3;
+
+      component.onFiltersChange();
+
+      expect(component.page).toBe(1);
+      expect(loadSpy).toHaveBeenCalled();
+    });
+
+    it('should clear filters and reload', () => {
+      const loadSpy = vi.spyOn(component, 'loadReservations').mockImplementation(() => {});
+      component.reservationIdFilter = 5;
+      component.readerNameFilter = 'Jan Kowalski';
+
+      component.clearFilters();
+
+      expect(component.reservationIdFilter).toBeNull();
+      expect(component.readerNameFilter).toBe('');
+      expect(loadSpy).toHaveBeenCalled();
+    });
+
+    it('should return reader full name', () => {
+      expect(component.getReaderName(mockReservations[0])).toBe('Jan Kowalski');
     });
   });
 

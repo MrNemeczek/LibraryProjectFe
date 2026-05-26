@@ -1,6 +1,3 @@
-<p-toast />
-<p-confirmdialog />
-
 <div class="loans-page">
   <h1>Moje wypożyczenia</h1>
 
@@ -21,12 +18,11 @@
         <th>Data wypożyczenia</th>
         <th>Data zwrotu</th>
         <th>Status</th>
-        <th style="width: 100px">Akcje</th>
       </tr>
     </ng-template>
     <ng-template #body let-loan>
       <tr>
-        <td>#{{ loan.bookCopyId }}</td>
+        <td>{{ loan.bookCopyInventoryNumber }}</td>
         <td>{{ loan.loanDate }}</td>
         <td>{{ loan.returnDate || '-' }}</td>
         <td>
@@ -35,22 +31,11 @@
             [severity]="getStatusSeverity(loan.status)"
           />
         </td>
-        <td>
-          @if (loan.status === 'Active' || loan.status === 'Overdue') {
-            <p-button
-              icon="pi pi-undo"
-              severity="success"
-              size="small"
-              (click)="confirmReturn(loan.id)"
-              pTooltip="Zwróć książkę"
-            />
-          }
-        </td>
       </tr>
     </ng-template>
     <ng-template #emptymessage>
       <tr>
-        <td colspan="5" class="text-center">Brak wypożyczeń.</td>
+        <td colspan="4" class="text-center">Brak wypożyczeń.</td>
       </tr>
     </ng-template>
   </p-table>

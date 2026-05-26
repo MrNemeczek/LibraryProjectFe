@@ -1,10 +1,6 @@
 import { Component, inject, ChangeDetectionStrategy, ChangeDetectorRef, afterNextRender } from '@angular/core';
-import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
-import { ConfirmDialog } from 'primeng/confirmdialog';
-import { ConfirmationService, MessageService } from 'primeng/api';
 import { LoanService } from '../../../services/loan.service';
 import { LoanResponse } from '../../../models/loan.model';
 
@@ -12,15 +8,12 @@ import { LoanResponse } from '../../../models/loan.model';
   selector: 'app-my-loans',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Button, TableModule, Tag, ToastModule, ConfirmDialog],
-  providers: [MessageService, ConfirmationService],
+  imports: [TableModule, Tag],
   templateUrl: './my-loans.html',
   styleUrl: './my-loans.scss',
 })
 export class MyLoans {
   private loanService = inject(LoanService);
-  private messageService = inject(MessageService);
-  private confirmationService = inject(ConfirmationService);
   private cdr = inject(ChangeDetectorRef);
 
   loans: LoanResponse[] = [];
@@ -83,34 +76,4 @@ export class MyLoans {
     }
   }
 
-  confirmReturn(id: number): void {
-    this.confirmationService.confirm({
-      message: 'Czy na pewno chcesz zwrócić tę książkę?',
-      header: 'Zwrot książki',
-      icon: 'pi pi-refresh',
-      acceptLabel: 'Tak, zwróć',
-      rejectLabel: 'Anuluj',
-      accept: () => this.returnBook(id),
-    });
-  }
-
-  private returnBook(id: number): void {
-    this.loanService.returnBook(id).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Zwrócono',
-          detail: 'Książka została zwrócona pomyślnie.',
-        });
-        this.loadLoans();
-      },
-      error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Błąd',
-          detail: err.error?.message || 'Nie udało się zwrócić książki.',
-        });
-      },
-    });
-  }
 }

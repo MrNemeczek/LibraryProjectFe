@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import {
   ReservationResponse,
   CreateReservationRequest,
+  ReservationFilters,
 } from '../models/reservation.model';
 import { PaginatedResponse } from '../models/common.model';
 
@@ -26,11 +27,21 @@ export class ReservationService {
 
   getAllReservations(
     page: number = 1,
-    pageSize: number = 20
+    pageSize: number = 20,
+    filters: ReservationFilters = {}
   ): Observable<PaginatedResponse<ReservationResponse>> {
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('Page', page)
       .set('PageSize', pageSize);
+
+    if (filters.reservationId) {
+      params = params.set('ReservationId', filters.reservationId.toString());
+    }
+
+    if (filters.readerName?.trim()) {
+      params = params.set('ReaderName', filters.readerName.trim());
+    }
+
     return this.http.get<PaginatedResponse<ReservationResponse>>(
       '/api/reservations/all',
       { params }

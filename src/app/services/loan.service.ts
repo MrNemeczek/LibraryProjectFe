@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { LoanResponse } from '../models/loan.model';
+import { LoanFilters, LoanResponse } from '../models/loan.model';
 import { PaginatedResponse } from '../models/common.model';
 
 @Injectable({ providedIn: 'root' })
@@ -22,11 +22,24 @@ export class LoanService {
 
   getAllLoans(
     page: number = 1,
-    pageSize: number = 20
+    pageSize: number = 20,
+    filters: LoanFilters = {}
   ): Observable<PaginatedResponse<LoanResponse>> {
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('Page', page)
       .set('PageSize', pageSize);
+
+    if (filters.readerName?.trim()) {
+      params = params.set('ReaderName', filters.readerName.trim());
+    }
+
+    if (filters.bookCopyInventoryNumber?.trim()) {
+      params = params.set(
+        'BookCopyInventoryNumber',
+        filters.bookCopyInventoryNumber.trim()
+      );
+    }
+
     return this.http.get<PaginatedResponse<LoanResponse>>('/api/loans/all', {
       params,
     });

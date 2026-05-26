@@ -15,7 +15,8 @@ describe('MyReservations', () => {
   const mockReservations: ReservationResponse[] = [
     {
       id: 1,
-      userId: 1,
+      readerFirstName: 'Jan',
+      readerLastName: 'Kowalski',
       bookId: 1,
       bookTitle: 'W pustyni i w puszczy',
       reservationDate: '2026-01-15',
@@ -24,7 +25,8 @@ describe('MyReservations', () => {
     },
     {
       id: 2,
-      userId: 1,
+      readerFirstName: 'Jan',
+      readerLastName: 'Kowalski',
       bookId: 2,
       bookTitle: 'Lalka',
       reservationDate: '2025-12-01',

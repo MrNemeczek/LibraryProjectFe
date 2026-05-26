@@ -1,5 +1,10 @@
 import { Component, inject, ChangeDetectionStrategy, ChangeDetectorRef, afterNextRender } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
+import { Card } from 'primeng/card';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
+import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
@@ -11,7 +16,7 @@ import { ReservationResponse } from '../../../models/reservation.model';
   selector: 'app-all-reservations',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Button, TableModule, Tag, ToastModule],
+  imports: [FormsModule, Button, Card, IconField, InputIcon, InputText, TableModule, Tag, ToastModule],
   providers: [MessageService],
   templateUrl: './all-reservations.html',
   styleUrl: './all-reservations.scss',
@@ -26,6 +31,8 @@ export class AllReservations {
   page = 1;
   pageSize = 20;
   loading = false;
+  reservationIdFilter: number | null = null;
+  readerNameFilter = '';
 
   constructor() {
     afterNextRender(() => {
@@ -36,7 +43,10 @@ export class AllReservations {
   loadReservations(): void {
     this.loading = true;
     this.reservationService
-      .getAllReservations(this.page, this.pageSize)
+      .getAllReservations(this.page, this.pageSize, {
+        reservationId: this.reservationIdFilter,
+        readerName: this.readerNameFilter,
+      })
       .subscribe({
         next: (response) => {
           this.reservations = response.items;
@@ -55,6 +65,21 @@ export class AllReservations {
     this.page = Math.floor(event.first / event.rows) + 1;
     this.pageSize = event.rows;
     this.loadReservations();
+  }
+
+  onFiltersChange(): void {
+    this.page = 1;
+    this.loadReservations();
+  }
+
+  clearFilters(): void {
+    this.reservationIdFilter = null;
+    this.readerNameFilter = '';
+    this.onFiltersChange();
+  }
+
+  getReaderName(reservation: ReservationResponse): string {
+    return `${reservation.readerFirstName} ${reservation.readerLastName}`.trim() || '-';
   }
 
   getStatusSeverity(status: string): 'warn' | 'info' | 'success' | 'danger' | 'secondary' | 'contrast' | undefined {
