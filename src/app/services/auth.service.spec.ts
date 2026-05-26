@@ -18,6 +18,21 @@ const mockResponse: AuthenticationResponse = {
   user: mockUser,
 };
 
+function createJwt(expiresInSeconds: number): string {
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const payload = {
+    exp: Math.floor(Date.now() / 1000) + expiresInSeconds,
+  };
+
+  const encode = (value: unknown) =>
+    btoa(JSON.stringify(value))
+      .replace(/=/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
+
+  return `${encode(header)}.${encode(payload)}.signature`;
+}
+
 describe('AuthService', () => {
   let service: AuthService;
   let http: { post: ReturnType<typeof vi.fn> };
@@ -43,9 +58,21 @@ describe('AuthService', () => {
   });
 
   it('should restore user from localStorage on init', () => {
+    localStorage.setItem('library_jwt_token', createJwt(60));
     localStorage.setItem('library_user', JSON.stringify(mockUser));
     const restored = new AuthService(http as unknown as HttpClient);
     expect(restored.currentUser()).toEqual(mockUser);
+  });
+
+  it('should clear stored user and token on init when token is expired', () => {
+    localStorage.setItem('library_jwt_token', createJwt(-60));
+    localStorage.setItem('library_user', JSON.stringify(mockUser));
+
+    const restored = new AuthService(http as unknown as HttpClient);
+
+    expect(restored.currentUser()).toBeNull();
+    expect(localStorage.getItem('library_jwt_token')).toBeNull();
+    expect(localStorage.getItem('library_user')).toBeNull();
   });
 
   describe('login', () => {
@@ -79,13 +106,35 @@ describe('AuthService', () => {
   });
 
   describe('isLoggedIn', () => {
-    it('should return true when token exists', () => {
-      localStorage.setItem('library_jwt_token', 'token');
+    it('should return true when token is valid', () => {
+      localStorage.setItem('library_jwt_token', createJwt(60));
       expect(service.isLoggedIn()).toBe(true);
     });
 
     it('should return false when no token', () => {
       expect(service.isLoggedIn()).toBe(false);
+    });
+
+    it('should return false and clear session when token is expired', () => {
+      localStorage.setItem('library_jwt_token', createJwt(-60));
+      localStorage.setItem('library_user', JSON.stringify(mockUser));
+      service.currentUser.set(mockUser);
+
+      expect(service.isLoggedIn()).toBe(false);
+      expect(localStorage.getItem('library_jwt_token')).toBeNull();
+      expect(localStorage.getItem('library_user')).toBeNull();
+      expect(service.currentUser()).toBeNull();
+    });
+
+    it('should return false and clear session when token is invalid', () => {
+      localStorage.setItem('library_jwt_token', 'invalid-token');
+      localStorage.setItem('library_user', JSON.stringify(mockUser));
+      service.currentUser.set(mockUser);
+
+      expect(service.isLoggedIn()).toBe(false);
+      expect(localStorage.getItem('library_jwt_token')).toBeNull();
+      expect(localStorage.getItem('library_user')).toBeNull();
+      expect(service.currentUser()).toBeNull();
     });
   });
 
