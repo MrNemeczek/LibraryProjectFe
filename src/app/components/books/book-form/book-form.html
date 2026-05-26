@@ -60,12 +60,17 @@
 
         <div class="field">
           <label for="categoryName">Kategoria</label>
-          <input
-            id="categoryName"
-            pInputText
-            type="text"
+          <p-autocomplete
+            inputId="categoryName"
             formControlName="categoryName"
-            class="w-full"
+            [suggestions]="filteredCategoryNames"
+            (completeMethod)="filterCategories($event)"
+            [dropdown]="true"
+            [forceSelection]="false"
+            [completeOnFocus]="true"
+            [showClear]="true"
+            styleClass="w-full"
+            inputStyleClass="w-full"
             placeholder="Nazwa kategorii"
           />
           @if (categoryName.invalid && (categoryName.dirty || categoryName.touched)) {

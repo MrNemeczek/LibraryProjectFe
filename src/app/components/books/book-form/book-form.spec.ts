@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { BookForm } from './book-form';
 import { BookService } from '../../../services/book.service';
-import { BookResponse } from '../../../models/book.model';
+import { BookResponse, CategoryResponse } from '../../../models/book.model';
 
 const mockBook: BookResponse = {
   id: 1,
@@ -19,10 +19,17 @@ const mockBook: BookResponse = {
   ],
 };
 
+const mockCategories: CategoryResponse[] = [
+  { id: 1, name: 'Przygodowa' },
+  { id: 2, name: 'Powieść' },
+  { id: 3, name: 'Fantasy' },
+];
+
 describe('BookForm', () => {
   let component: BookForm;
   let fixture: ComponentFixture<BookForm>;
   let bookService: {
+    getCategories: ReturnType<typeof vi.fn>;
     getBook: ReturnType<typeof vi.fn>;
     createBook: ReturnType<typeof vi.fn>;
     updateBook: ReturnType<typeof vi.fn>;
@@ -30,7 +37,12 @@ describe('BookForm', () => {
   let router: { navigate: ReturnType<typeof vi.fn> };
 
   const createComponent = async (id: string | null) => {
-    bookService = { getBook: vi.fn(), createBook: vi.fn(), updateBook: vi.fn() };
+    bookService = {
+      getCategories: vi.fn().mockReturnValue(of(mockCategories)),
+      getBook: vi.fn(),
+      createBook: vi.fn(),
+      updateBook: vi.fn(),
+    };
     router = { navigate: vi.fn() };
 
     await TestBed.configureTestingModule({
@@ -56,6 +68,16 @@ describe('BookForm', () => {
       await createComponent(null);
       component.ngOnInit();
       expect(component.isEdit).toBe(false);
+    });
+
+    it('should load categories dictionary', async () => {
+      await createComponent(null);
+
+      component.ngOnInit();
+
+      expect(bookService.getCategories).toHaveBeenCalled();
+      expect(component.categories).toEqual(mockCategories);
+      expect(component.filteredCategoryNames).toEqual(['Przygodowa', 'Powieść', 'Fantasy']);
     });
 
     it('should set isEdit to true and load book when id param present', async () => {
@@ -108,6 +130,26 @@ describe('BookForm', () => {
         categoryName: 'Fiction',
       });
       expect(component.form.valid).toBe(true);
+    });
+  });
+
+  describe('filterCategories', () => {
+    it('should filter category suggestions by query', async () => {
+      await createComponent(null);
+      component.ngOnInit();
+
+      component.filterCategories({ query: 'pow' });
+
+      expect(component.filteredCategoryNames).toEqual(['Powieść']);
+    });
+
+    it('should show all category suggestions for empty query', async () => {
+      await createComponent(null);
+      component.ngOnInit();
+
+      component.filterCategories({ query: '' });
+
+      expect(component.filteredCategoryNames).toEqual(['Przygodowa', 'Powieść', 'Fantasy']);
     });
   });
 
@@ -191,6 +233,29 @@ describe('BookForm', () => {
         description: '',
         categoryName: 'Fiction',
         inventoryNumbers: ['INV-100', 'INV-101'],
+      });
+    });
+
+    it('should allow submitting category outside dictionary', async () => {
+      await createComponent(null);
+      component.ngOnInit();
+      component.form.patchValue({
+        title: 'New Book',
+        author: 'Author',
+        isbn: '978-00-00000-00',
+        categoryName: 'Nowa kategoria',
+      });
+      bookService.createBook.mockReturnValue(of(mockBook));
+
+      component.onSubmit();
+
+      expect(bookService.createBook).toHaveBeenCalledWith({
+        title: 'New Book',
+        author: 'Author',
+        isbn: '978-00-00000-00',
+        description: '',
+        categoryName: 'Nowa kategoria',
+        inventoryNumbers: null,
       });
     });
 

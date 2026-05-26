@@ -4,12 +4,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { AutoComplete } from 'primeng/autocomplete';
 import { Textarea } from 'primeng/textarea';
 import { Card } from 'primeng/card';
 import { Message } from 'primeng/message';
 import { Tag } from 'primeng/tag';
 import { BookService } from '../../../services/book.service';
-import { BookCopyResponse } from '../../../models/book.model';
+import { BookCopyResponse, CategoryResponse } from '../../../models/book.model';
 
 @Component({
   selector: 'app-book-form',
@@ -19,6 +20,7 @@ import { BookCopyResponse } from '../../../models/book.model';
     RouterLink,
     Button,
     InputText,
+    AutoComplete,
     Textarea,
     Card,
     Message,
@@ -40,6 +42,8 @@ export class BookForm implements OnInit {
   submitting = false;
   error = '';
 
+  categories: CategoryResponse[] = [];
+  filteredCategoryNames: string[] = [];
   existingCopies: BookCopyResponse[] = [];
   inventoryNumbers: string[] = [];
   newInventoryControl = this.fb.nonNullable.control('', [
@@ -62,6 +66,8 @@ export class BookForm implements OnInit {
   get categoryName() { return this.form.controls.categoryName; }
 
   ngOnInit(): void {
+    this.loadCategories();
+
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       this.isEdit = true;
@@ -70,6 +76,25 @@ export class BookForm implements OnInit {
         this.loadBook();
       }
     }
+  }
+
+  loadCategories(): void {
+    this.bookService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+        this.filteredCategoryNames = categories.map((category) => category.name);
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  filterCategories(event: { query: string }): void {
+    const query = event.query.trim().toLocaleLowerCase();
+    const categoryNames = this.categories.map((category) => category.name);
+
+    this.filteredCategoryNames = query
+      ? categoryNames.filter((name) => name.toLocaleLowerCase().includes(query))
+      : categoryNames;
   }
 
   private loadBook(): void {
