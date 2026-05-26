@@ -1,9 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import { of } from 'rxjs';
 import { BookList } from './book-list';
 import { BookService } from '../../../services/book.service';
 import { AuthService } from '../../../services/auth.service';
-import { BookResponse } from '../../../models/book.model';
+import { BookResponse, CategoryResponse } from '../../../models/book.model';
 import { PaginatedResponse } from '../../../models/common.model';
 
 const mockBooks: BookResponse[] = [
@@ -47,15 +48,26 @@ const mockPaginated: PaginatedResponse<BookResponse> = {
   totalPages: 1,
 };
 
+const mockCategories: CategoryResponse[] = [
+  { id: 1, name: 'Przygodowa' },
+  { id: 2, name: 'Powieść' },
+];
+
 describe('BookList', () => {
   let component: BookList;
   let fixture: ComponentFixture<BookList>;
-  let bookService: { getBooks: ReturnType<typeof vi.fn> };
+  let bookService: {
+    getBooks: ReturnType<typeof vi.fn>;
+    getCategories: ReturnType<typeof vi.fn>;
+  };
   let authService: { hasAnyRole: ReturnType<typeof vi.fn> };
   let router: { navigate: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
-    bookService = { getBooks: vi.fn() };
+    bookService = {
+      getBooks: vi.fn().mockReturnValue(of(mockPaginated)),
+      getCategories: vi.fn().mockReturnValue(of(mockCategories)),
+    };
     authService = { hasAnyRole: vi.fn() };
     router = { navigate: vi.fn() };
 
@@ -72,34 +84,56 @@ describe('BookList', () => {
     component = fixture.componentInstance;
   });
 
-  describe('applyFilter', () => {
-    beforeEach(() => {
-      component.books = mockBooks;
+  describe('loadBooks', () => {
+    it('should load books with filters', () => {
+      component.titleFilter = 'Lalka';
+      component.authorFilter = 'Prus';
+      component.categoryIdFilter = 2;
+
+      component.loadBooks();
+
+      expect(bookService.getBooks).toHaveBeenCalledWith(1, 20, {
+        title: 'Lalka',
+        author: 'Prus',
+        categoryId: 2,
+      });
+      expect(component.books).toEqual(mockBooks);
+      expect(component.totalCount).toBe(3);
+    });
+  });
+
+  describe('loadCategories', () => {
+    it('should load categories dictionary', () => {
+      component.loadCategories();
+
+      expect(bookService.getCategories).toHaveBeenCalled();
+      expect(component.categories).toEqual(mockCategories);
+    });
+  });
+
+  describe('filters', () => {
+    it('should reset to first page and reload when filters change', () => {
+      vi.spyOn(component, 'loadBooks').mockImplementation(() => {});
+      component.page = 3;
+
+      component.onFiltersChange();
+
+      expect(component.page).toBe(1);
+      expect(component.loadBooks).toHaveBeenCalled();
     });
 
-    it('should show all books when searchTerm is empty', () => {
-      component.searchTerm = '';
-      component.applyFilter();
-      expect(component.filteredBooks.length).toBe(3);
-    });
+    it('should clear filters and reload', () => {
+      vi.spyOn(component, 'loadBooks').mockImplementation(() => {});
+      component.titleFilter = 'Lalka';
+      component.authorFilter = 'Prus';
+      component.categoryIdFilter = 2;
 
-    it('should filter books by title (case-insensitive)', () => {
-      component.searchTerm = 'lalka';
-      component.applyFilter();
-      expect(component.filteredBooks.length).toBe(1);
-      expect(component.filteredBooks[0].title).toBe('Lalka');
-    });
+      component.clearFilters();
 
-    it('should return empty when no match', () => {
-      component.searchTerm = 'nieistnieje';
-      component.applyFilter();
-      expect(component.filteredBooks.length).toBe(0);
-    });
-
-    it('should match partial title', () => {
-      component.searchTerm = 'puszczy';
-      component.applyFilter();
-      expect(component.filteredBooks.length).toBe(1);
+      expect(component.titleFilter).toBe('');
+      expect(component.authorFilter).toBe('');
+      expect(component.categoryIdFilter).toBeNull();
+      expect(component.loadBooks).toHaveBeenCalled();
     });
   });
 

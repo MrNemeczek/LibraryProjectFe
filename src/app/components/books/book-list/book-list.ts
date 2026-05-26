@@ -10,7 +10,7 @@ import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { AuthService } from '../../../services/auth.service';
 import { BookService } from '../../../services/book.service';
-import { BookResponse } from '../../../models/book.model';
+import { BookResponse, CategoryResponse } from '../../../models/book.model';
 
 @Component({
   selector: 'app-book-list',
@@ -37,12 +37,14 @@ export class BookList {
   private cdr = inject(ChangeDetectorRef);
 
   books: BookResponse[] = [];
-  filteredBooks: BookResponse[] = [];
+  categories: CategoryResponse[] = [];
   totalCount = 0;
   page = 1;
   pageSize = 20;
   loading = false;
-  searchTerm = '';
+  titleFilter = '';
+  authorFilter = '';
+  categoryIdFilter: number | null = null;
 
   get isLibrarianOrAdmin(): boolean {
     return this.authService.hasAnyRole(['Librarian', 'Administrator']);
@@ -50,22 +52,35 @@ export class BookList {
 
   constructor() {
     afterNextRender(() => {
+      this.loadCategories();
       this.loadBooks();
     });
   }
 
   loadBooks(): void {
     this.loading = true;
-    this.bookService.getBooks(this.page, this.pageSize).subscribe({
+    this.bookService.getBooks(this.page, this.pageSize, {
+      title: this.titleFilter,
+      author: this.authorFilter,
+      categoryId: this.categoryIdFilter,
+    }).subscribe({
       next: (response) => {
         this.books = response.items;
         this.totalCount = response.totalCount;
-        this.applyFilter();
         this.loading = false;
         this.cdr.markForCheck();
       },
       error: () => {
         this.loading = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  loadCategories(): void {
+    this.bookService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories;
         this.cdr.markForCheck();
       },
     });
@@ -77,19 +92,16 @@ export class BookList {
     this.loadBooks();
   }
 
-  applyFilter(): void {
-    if (!this.searchTerm.trim()) {
-      this.filteredBooks = this.books;
-    } else {
-      const term = this.searchTerm.toLowerCase();
-      this.filteredBooks = this.books.filter((b) =>
-        b.title.toLowerCase().includes(term)
-      );
-    }
+  onFiltersChange(): void {
+    this.page = 1;
+    this.loadBooks();
   }
 
-  onSearchInput(): void {
-    this.applyFilter();
+  clearFilters(): void {
+    this.titleFilter = '';
+    this.authorFilter = '';
+    this.categoryIdFilter = null;
+    this.onFiltersChange();
   }
 
   viewBook(id: number): void {

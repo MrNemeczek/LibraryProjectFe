@@ -18,12 +18,26 @@
 }
 
 .toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
   margin-bottom: 1rem;
 }
 
-.search-input {
+.filter-input,
+.category-filter {
   width: 100%;
   max-width: 320px;
+}
+
+.category-filter {
+  min-height: 2.5rem;
+  border: 1px solid var(--p-inputtext-border-color);
+  border-radius: var(--p-inputtext-border-radius);
+  padding: 0 0.75rem;
+  background: var(--p-inputtext-background);
+  color: var(--p-inputtext-color);
 }
 
 .cursor-pointer {

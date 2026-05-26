@@ -13,17 +13,40 @@
         <input
           pInputText
           type="text"
-          [(ngModel)]="searchTerm"
-          (input)="onSearchInput()"
-          placeholder="Szukaj po tytule..."
-          class="search-input"
+          [(ngModel)]="titleFilter"
+          (input)="onFiltersChange()"
+          placeholder="Tytuł"
+          class="filter-input"
         />
       </p-iconfield>
+
+      <p-iconfield>
+        <p-inputicon styleClass="pi pi-user" />
+        <input
+          pInputText
+          type="text"
+          [(ngModel)]="authorFilter"
+          (input)="onFiltersChange()"
+          placeholder="Autor"
+          class="filter-input"
+        />
+      </p-iconfield>
+
+      <select class="category-filter" [(ngModel)]="categoryIdFilter" (change)="onFiltersChange()">
+        <option [ngValue]="null">Wszystkie kategorie</option>
+        @for (category of categories; track category.id) {
+          <option [ngValue]="category.id">{{ category.name }}</option>
+        }
+      </select>
+
+      <p-button severity="secondary" label="Wyczyść" (click)="clearFilters()" />
     </div>
 
     <p-table
-      [value]="filteredBooks"
+      [value]="books"
       [paginator]="true"
+      [lazy]="true"
+      [first]="(page - 1) * pageSize"
       [rows]="pageSize"
       [totalRecords]="totalCount"
       (onPage)="onPageChange($event)"
@@ -62,7 +85,7 @@
       <ng-template #emptymessage>
         <tr>
           <td [attr.colspan]="isLibrarianOrAdmin ? 5 : 4" class="text-center">
-            Brak książek.
+            Brak książek spełniających kryteria.
           </td>
         </tr>
       </ng-template>

@@ -15,6 +15,17 @@ export interface BookResponse {
   copies: BookCopyResponse[];
 }
 
+export interface BookFilters {
+  title?: string | null;
+  author?: string | null;
+  categoryId?: number | null;
+}
+
+export interface CategoryResponse {
+  id: number;
+  name: string;
+}
+
 export interface CreateBookRequest {
   title: string;
   author: string;
